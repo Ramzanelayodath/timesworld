@@ -22,9 +22,11 @@ class SelectedItemAdapter(private val selectedItem: MutableList<Data.Data.Taxono
     override fun onBindViewHolder(holder: SelectedItemAdapter.ViewHolder, position: Int) {
          holder.txtName.text = selectedItem[position].name
          holder.imgClose.setOnClickListener {
-             onItemClick!!.invoke(selectedItem[position])
-             selectedItem.removeAt(position)
-             notifyItemRemoved(position)
+             val item = selectedItem[position]
+             selectedItem.remove(item)
+             onItemClick?.invoke(item)
+             notifyDataSetChanged()
+
 
          }
     }
@@ -32,6 +34,12 @@ class SelectedItemAdapter(private val selectedItem: MutableList<Data.Data.Taxono
 
     override fun getItemCount(): Int {
         return selectedItem.size
+    }
+
+    fun setData(list: List<Data.Data.Taxonomy>?) {
+        selectedItem.clear()
+        selectedItem.addAll(list!!)
+        notifyDataSetChanged()
     }
 
 

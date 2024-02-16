@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 
-class RecyclerViewAdapter(private val ctx : Context ,private val parentItems: List<Data.Data>) :
+class RecyclerViewAdapter(private val ctx : Context ,private val parentItems: MutableList<Data.Data>) :
     RecyclerView.Adapter< RecyclerViewAdapter.ParentViewHolder>() {
 
     var onItemClick: ((Data.Data.Taxonomy,Boolean) -> Unit)? = null
@@ -31,6 +31,20 @@ class RecyclerViewAdapter(private val ctx : Context ,private val parentItems: Li
         val item = parentItems[position]
         holder.title.text = item.name+"("+item.taxonomies.size.toString()+")"
         holder.recyclerView.layoutManager = LinearLayoutManager(ctx,RecyclerView.VERTICAL,false)
+        if (item.isExpanded) {
+            holder.image.setImageResource(R.drawable.ic_baseline_keyboard_arrow_up_24)
+            holder.recyclerView.visibility = View.VISIBLE
+            val adapter = RecyclerItemAdapter(item.taxonomies)
+            holder.recyclerView.adapter = adapter
+            adapter.onItemClick = {it,isChecked ->
+                onItemClick?.invoke(it,isChecked)
+            }
+        }
+        else {
+            holder.image.setImageResource(R.drawable.ic_baseline_keyboard_arrow_down_24)
+            holder.recyclerView.visibility = View.GONE
+        }
+
         holder.itemView.setOnClickListener {
             item.isExpanded = !item.isExpanded
             if (item.isExpanded) {
@@ -53,6 +67,12 @@ class RecyclerViewAdapter(private val ctx : Context ,private val parentItems: Li
 
     override fun getItemCount(): Int {
         return parentItems.size
+    }
+
+    fun setData(list: List<Data.Data>?) {
+         parentItems.clear()
+         parentItems.addAll(list!!)
+         notifyDataSetChanged()
     }
 
 

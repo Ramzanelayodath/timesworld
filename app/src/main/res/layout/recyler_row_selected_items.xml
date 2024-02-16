@@ -20,5 +20,6 @@
           android:layout_marginLeft="2dp"
           android:layout_gravity="center"
           android:text="Selected "
+          android:textColor="@color/black"
           android:id="@+id/txtName"/>
 </LinearLayout>

@@ -12,48 +12,54 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test.databinding.FragmentHomeScreenBinding
 
-
 class HomeScreen : Fragment() {
     private lateinit var binding: FragmentHomeScreenBinding
-    private var list: List<Data.Data> =  mutableListOf()
-    var selectedItemList = mutableListOf<Data.Data.Taxonomy>()
-    lateinit var selectedItemAdapter : SelectedItemAdapter
-    private lateinit var  homeViewModel : HomeViewModel
-    lateinit var adapter: RecyclerViewAdapter
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(requireActivity(), ViewModelFactory(requireContext())).get(HomeViewModel::class.java)
+    }
+    private lateinit var adapter: RecyclerViewAdapter
+    private lateinit var selectedItemAdapter: SelectedItemAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        binding = FragmentHomeScreenBinding.inflate(inflater,container,false)
-        homeViewModel = ViewModelProvider(requireActivity(),ViewModelFactory(requireContext()))[HomeViewModel::class.java]
+        binding = FragmentHomeScreenBinding.inflate(inflater, container, false)
         binding.apply {
-           rd1.isChecked = true
-            recycler.layoutManager = LinearLayoutManager(requireActivity(),RecyclerView.VERTICAL,false)
-            recyclerItems.layoutManager = LinearLayoutManager(requireActivity(),RecyclerView.HORIZONTAL,false)
+            rd1.isChecked = true
+            recycler.layoutManager = LinearLayoutManager(requireActivity(), RecyclerView.VERTICAL, false)
+            recyclerItems.layoutManager =
+                LinearLayoutManager(requireActivity(), RecyclerView.HORIZONTAL, false)
         }
-        adapter = RecyclerViewAdapter(requireActivity(),list.toMutableList())
-        homeViewModel._selectedItem.observe(requireActivity()) {
-            selectedItemList = it as MutableList<Data.Data.Taxonomy>
-            selectedItemAdapter = SelectedItemAdapter(selectedItemList.toMutableList())
-            selectedItemAdapter.onItemClick = {it ->
-                //homeViewModel.unSelectItem(it)
-            }
-            binding.recyclerItems.adapter = selectedItemAdapter
 
-        }
-        homeViewModel._categoryItem.observe(requireActivity()){
-            list = it as MutableList<Data.Data>
-            adapter = RecyclerViewAdapter(requireActivity(),list.toMutableList())
-            binding.recycler.adapter = adapter
-            adapter.onItemClick = { it,isClicked ->
-                homeViewModel.selectItem(it,isClicked)
-            }
-        }
+        setupCategoryRecyclerView()
+        setupSelectedItemRecyclerView()
+
         return binding.root
     }
 
+    private fun setupCategoryRecyclerView() {
+        adapter = RecyclerViewAdapter(requireActivity(), mutableListOf())
+        binding.recycler.adapter = adapter
+        adapter.onItemClick = { item, isClicked ->
+            homeViewModel.selectItem(item, isClicked)
+        }
+        homeViewModel._categoryItem.observe(viewLifecycleOwner) { list ->
+            adapter.setData(list)
+        }
+    }
 
+    private fun setupSelectedItemRecyclerView() {
+        selectedItemAdapter = SelectedItemAdapter(mutableListOf())
+        binding.recyclerItems.adapter = selectedItemAdapter
+        selectedItemAdapter.onItemClick = { item ->
+            homeViewModel.unSelectItem(item)
+            homeViewModel.selectItem(item,false)
+        }
+        homeViewModel._selectedItem.observe(viewLifecycleOwner) { list ->
+            selectedItemAdapter.setData(list)
+        }
+    }
 }
 
 class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
